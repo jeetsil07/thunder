@@ -4,7 +4,7 @@ from .views import PostModelViewSet, PostCategoryModelViewSet
 
 # Create a router and register our viewset with it.
 router = DefaultRouter()
-router.register(r'posts', PostModelViewSet)
+router.register(r'posts', PostModelViewSet,basename='post')
 router.register(r'postscategory', PostCategoryModelViewSet)
 
 # The API URLs are now determined automatically by the router.
