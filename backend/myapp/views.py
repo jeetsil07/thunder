@@ -1,14 +1,58 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Post, PostCategory
-from .serializers import PostSerializer, PostCategorySerializer
+from .models import Post, PostCategory,PostComments
+from .serializers import PostSerializer, PostCategorySerializer, PostCommentSerializer
 from django.core.cache import cache
 from rest_framework.response import Response
 import os
 # Create your views here.
 import logging
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
+class PostCommentsModelViewSet(viewsets.ModelViewSet):
+    queryset = PostComments.objects.all()
+    serializer_class = PostCommentSerializer
+
+    def list(self, request, *args, **kwargs):
+        # Get the post_id from the query parameters
+        post_id = request.query_params.get('post_id', None)
+
+        # Create a cache key based on post_id
+        # if post_id:
+        #     cache_key = f'post_comments_{post_id}'
+        # else:
+        #     cache_key = 'all_root_comments'
+
+        # # Try to get data from cache
+        # cached_data = cache.get(cache_key)
+
+        # if cached_data is not None:
+        #     # If data is cached, return it
+        #     print('cache hit',cached_data,cache_key)
+        #     return Response(cached_data)
+
+        # If no cache, query the database
+        if post_id:
+            queryset = self.filter_queryset(self.get_queryset().filter(related_post_id=post_id, parent_comment__isnull=True))
+        else:
+            queryset = self.filter_queryset(self.get_queryset().filter(parent_comment__isnull=True))
+
+        # Paginate the results if necessary
+        # page = self.paginate_queryset(queryset)
+        # if page is not None:
+        #     serializer = self.get_serializer(page, many=True)
+        #     data = self.get_paginated_response(serializer.data).data
+        # else:
+        #     serializer = self.get_serializer(queryset, many=True)
+        #     data = serializer.data
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+
+        # Cache the data for 2 minutes
+        # cache.set(cache_key, data, timeout=60*2)  # Cache for 2 minutes
+
+        return Response(data)
+
 class PostCategoryModelViewSet(viewsets.ModelViewSet):
     queryset = PostCategory.objects.all()
     serializer_class = PostCategorySerializer
@@ -81,7 +125,7 @@ class PostModelViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         # Check if the image is being updated
-        instance = self.get_object()
+        instance = self.get_object() 
         if 'image' in self.request.FILES and instance.image:
             # Delete the old image file from the filesystem
             if os.path.isfile(instance.image.path):
