@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from .models import Post, PostCategory,PostComments
 from .serializers import PostSerializer, PostCategorySerializer, PostCommentSerializer
 from django.core.cache import cache
@@ -18,18 +18,18 @@ class PostCommentsModelViewSet(viewsets.ModelViewSet):
         post_id = request.query_params.get('post_id', None)
 
         # Create a cache key based on post_id
-        # if post_id:
-        #     cache_key = f'post_comments_{post_id}'
-        # else:
-        #     cache_key = 'all_root_comments'
+        if post_id:
+            cache_key = f'post_comments_{post_id}'
+        else:
+            cache_key = 'all_root_comments'
 
-        # # Try to get data from cache
-        # cached_data = cache.get(cache_key)
+        # Try to get data from cache
+        cached_data = cache.get(cache_key)
 
-        # if cached_data is not None:
-        #     # If data is cached, return it
-        #     print('cache hit',cached_data,cache_key)
-        #     return Response(cached_data)
+        if cached_data is not None:
+            # If data is cached, return it
+            print('cache hit',cached_data,cache_key)
+            return Response(cached_data)
 
         # If no cache, query the database
         if post_id:
@@ -37,21 +37,43 @@ class PostCommentsModelViewSet(viewsets.ModelViewSet):
         else:
             queryset = self.filter_queryset(self.get_queryset().filter(parent_comment__isnull=True))
 
-        # Paginate the results if necessary
-        # page = self.paginate_queryset(queryset)
-        # if page is not None:
-        #     serializer = self.get_serializer(page, many=True)
-        #     data = self.get_paginated_response(serializer.data).data
-        # else:
-        #     serializer = self.get_serializer(queryset, many=True)
-        #     data = serializer.data
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
 
         # Cache the data for 2 minutes
-        # cache.set(cache_key, data, timeout=60*2)  # Cache for 2 minutes
+        cache.set(cache_key, data, timeout=60*2)  # Cache for 2 minutes
 
         return Response(data)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        related_post_id = serializer.data.get('related_post')
+        cache_key = f'post_comments_{related_post_id}'
+        cache.delete(cache_key)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def partial_update(self, request, *args, **kwargs):
+        print('updating')
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        related_post_id = instance.related_post_id
+        cache_key = f'post_comments_{related_post_id}'
+        cache.delete(cache_key)
+        return Response(serializer.data)
+    
+    def destroy(self, request, *args, **kwargs):
+        print('deleting')
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        related_post_id = instance.related_post_id
+        cache_key = f'post_comments_{related_post_id}'
+        cache.delete(cache_key)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class PostCategoryModelViewSet(viewsets.ModelViewSet):
     queryset = PostCategory.objects.all()

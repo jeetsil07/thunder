@@ -29,7 +29,7 @@ class PostCommentSerializer(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
     class Meta:
         model = PostComments
-        fields = ['comment_id', 'parent_comment', 'comment', 'comment_likes', 'related_post', 'children']
+        fields = ['comment_id', 'parent_comment', 'comment', 'comment_likes', 'related_post', 'created_at', 'updated_at', 'children']
 
         
     comment_id = serializers.UUIDField(default=uuid.uuid4)   
