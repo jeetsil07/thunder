@@ -2,6 +2,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 import uuid
+from django.utils import timezone
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 # validation methods 
 def validate_image(image):
@@ -19,14 +21,48 @@ def validate_title(self, value):
     return value
 
 # model classes
+class UsersAccountManager(BaseUserManager):
+    def create_user(self, email, first_name, last_name, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        if not first_name:
+            raise ValueError('The First Name field must be set')
+        if not last_name:
+            raise ValueError('The Last Name field must be set')
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, first_name=first_name, last_name=last_name, **extra_fields)
+        user.set_password(password)  # Hashes the password
+        user.save(using=self._db)
+        return user
+
+class UsersAccount(AbstractBaseUser,PermissionsMixin):
+    user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
+    last_login = models.DateTimeField(null=True, blank=True, default=timezone.now)
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(default=timezone.now)
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+
+    objects = UsersAccountManager()
+
+    def __str__(self):
+        return self.email
+
 
 class PostCategory(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    user = models.ForeignKey(UsersAccount, on_delete=models.SET_NULL, null=True, related_name='user_posts_category')
 
     def __str__(self):
         return self.name
     
 class Post(models.Model):
+    user = models.ForeignKey(UsersAccount, on_delete=models.SET_NULL, null=True, related_name='user_posts')
     title = models.CharField(
         max_length=50,
         validators=[validate_title]
@@ -36,7 +72,7 @@ class Post(models.Model):
         upload_to='posts/images/',
         validators=[validate_image]
     )
-    post_category = models.ForeignKey(PostCategory, related_name='posts', on_delete=models.CASCADE)
+    post_category = models.ForeignKey(PostCategory, related_name='posts_in_category', on_delete=models.CASCADE)
     post_ratings = models.IntegerField(default=0)
     rating_times = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -53,6 +89,8 @@ class PostComments(models.Model):
     comment_likes = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(UsersAccount, on_delete=models.SET_NULL, null=True, related_name='user_comments')
+
 
     def __str__(self):
         return self.comment

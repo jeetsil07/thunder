@@ -1,16 +1,56 @@
 from rest_framework import serializers
-from .models import Post, PostCategory, PostComments
+from .models import Post, PostCategory, PostComments, UsersAccount
 import uuid
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+
 def validate_image(image):
     if image.size > 1 * 1024 * 1024:
         raise serializers.ValidationError("The maximum file size that can be uploaded is 1MB.")
     if not image.name.lower().endswith(('.png', '.jpg', '.jpeg')):
         raise serializers.ValidationError("Unsupported file extension. Only PNG, JPG, and JPEG are allowed.")
+    
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
 
+    class Meta:
+        model = UsersAccount
+        fields = '__all__'
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')  # Extracts the password from the validated data
+        user = UsersAccount.objects.create_user(**validated_data, password=password)  # Calls the create_user method in the manager to create the user
+        return user
+    
+class UserLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+        
+        user = authenticate(email=email, password=password)  # Authenticate the user with email and password
+        if user is None:
+            raise serializers.ValidationError('Invalid email or password.')  # Raise error if authentication fails
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        tokens = {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+
+        return {
+            'tokens': tokens,
+            'user': user,
+        }
+    
 class PostCategorySerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     class Meta:
         model = PostCategory
-        fields = ['id', 'name']
+        fields = '__all__'
 class PostCommentSerializer(serializers.ModelSerializer):
     # Define parent_comment as a related field
     parent_comment = serializers.PrimaryKeyRelatedField(
@@ -24,12 +64,17 @@ class PostCommentSerializer(serializers.ModelSerializer):
         queryset=Post.objects.all(), 
         required=True
     )
+
+    # Define user_id as a related field
+    user = serializers.PrimaryKeyRelatedField(queryset=UsersAccount.objects.all(), required=False)
+
     
     # Method field for nested children comments
     children = serializers.SerializerMethodField()
+    
     class Meta:
         model = PostComments
-        fields = ['comment_id', 'parent_comment', 'comment', 'comment_likes', 'related_post', 'created_at', 'updated_at', 'children']
+        fields = '__all__'
 
         
     comment_id = serializers.UUIDField(default=uuid.uuid4)   
@@ -56,6 +101,7 @@ class PostCommentSerializer(serializers.ModelSerializer):
         return instance
 class PostSerializer(serializers.ModelSerializer):
     post_category = serializers.PrimaryKeyRelatedField(queryset=PostCategory.objects.all(), required=True)
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     # comments = PostCommentSerializer(many=True, read_only=True)
     class Meta:
         model = Post
