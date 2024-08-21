@@ -6,10 +6,11 @@ from django.contrib.auth import authenticate
 from django.core.cache import cache
 from rest_framework.response import Response
 import os
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, BasePermission, SAFE_METHODS
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, BasePermission, SAFE_METHODS, IsAuthenticated
 from rest_framework.exceptions import AuthenticationFailed
 import jwt
 from django.conf import settings
+from django.contrib.auth import get_user_model
 # Create your views here.
 import logging
 # def extract_user_id_from_jwt(request):
@@ -35,16 +36,64 @@ import logging
     
 #     raise AuthenticationFailed("Authorization header missing or invalid")
 
+# class UserRegistrationView(generics.GenericAPIView):
+#     serializer_class = UserRegistrationSerializer
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         if serializer.is_valid():
+#             user = serializer.save()
+#             return Response({'status': 'User created'}, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class UserRegistrationView(generics.GenericAPIView):
     serializer_class = UserRegistrationSerializer
 
+    def get_object(self):
+        # Retrieve the current user
+        return self.request.user
+
     def post(self, request, *args, **kwargs):
+        # Handle user creation (no authentication required)
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             return Response({'status': 'User created'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def patch(self, request, *args, **kwargs):
+        user = self.get_object()  # Get the current user
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            # Check if a new image is provided in the request
+            new_image = request.data.get('image', None)
+            print("New image received:", new_image)
+            
+            if new_image:
+                # Delete the old image if it exists
+                if user.image and hasattr(user.image, 'path'):
+                    old_image_path = user.image.path
+                    print("Old image path:", old_image_path)
+                    
+                    if os.path.exists(old_image_path):
+                        print("Old image exists, deleting...")
+                        os.remove(old_image_path)
+                        print("Old image deleted.")
+                    else:
+                        print("Old image does not exist.")
+            
+            # Save the new data, including the new image
+            user = serializer.save()
+
+            updated_user_data = self.get_serializer(user).data
+            
+            return Response({
+                'status': 'User updated',
+                'user': updated_user_data
+            }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class UserLoginView(generics.GenericAPIView):
     serializer_class = UserLoginSerializer
 
@@ -54,15 +103,25 @@ class UserLoginView(generics.GenericAPIView):
             tokens = serializer.validated_data.get('tokens')
             user = serializer.validated_data.get('user')
 
-            user_data = UserRegistrationSerializer(user).data
+             # Pass the request context to the serializer
+            user_data = UserRegistrationSerializer(user, context={'request': request}).data
             
             response_data = {
                 'tokens': tokens,
                 'user': user_data,
             }
+            # print(response_data)
             return Response(response_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
+    def patch(self, request, *args, **kwargs):
+        # Update existing user
+        user = self.get_object()  # Get the current user
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({'status': 'User updated'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 # logger = logging.getLogger(__name__)
 class IsAuthenticatedOrReadOnlyForUpdateDelete(BasePermission):
     """
@@ -111,6 +170,7 @@ class PostCommentsModelViewSet(viewsets.ModelViewSet):
         cache.set(cache_key, data, timeout=60*2)  # Cache for 2 minutes
 
         return Response(data)
+    
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -160,6 +220,7 @@ class PostCategoryModelViewSet(viewsets.ModelViewSet):
 class PostModelViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Post.objects.all()
 
 
     def get_queryset(self):

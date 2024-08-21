@@ -31,12 +31,27 @@ class UsersAccountManager(BaseUserManager):
             raise ValueError('The Last Name field must be set')
 
         email = self.normalize_email(email)
+        
+        # Extract the many-to-many data from extra_fields
+        groups = extra_fields.pop('groups', None)
+        user_permissions = extra_fields.pop('user_permissions', None)
+
+        # Create the user instance without the many-to-many fields
         user = self.model(email=email, first_name=first_name, last_name=last_name, **extra_fields)
-        user.set_password(password)  # Hashes the password
+        user.set_password(password)
         user.save(using=self._db)
+
+        # Assign the many-to-many relationships after the user is saved
+        if groups:
+            user.groups.set(groups)
+        
+        if user_permissions:
+            user.user_permissions.set(user_permissions)
+
         return user
 
-class UsersAccount(AbstractBaseUser,PermissionsMixin):
+
+class UsersAccount(AbstractBaseUser, PermissionsMixin):
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30)
@@ -44,7 +59,12 @@ class UsersAccount(AbstractBaseUser,PermissionsMixin):
     last_login = models.DateTimeField(null=True, blank=True, default=timezone.now)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
-    
+    image = models.ImageField(
+        upload_to='users/images/',
+        validators=[validate_image],
+        null=True,  # Allow image to be optional
+        blank=True  # Allow image field to be empty
+    )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
@@ -52,6 +72,7 @@ class UsersAccount(AbstractBaseUser,PermissionsMixin):
 
     def __str__(self):
         return self.email
+
 
 
 class PostCategory(models.Model):

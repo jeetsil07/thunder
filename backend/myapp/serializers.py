@@ -3,6 +3,7 @@ from .models import Post, PostCategory, PostComments, UsersAccount
 import uuid
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.conf import settings
 
 def validate_image(image):
     if image.size > 1 * 1024 * 1024:
@@ -12,19 +13,46 @@ def validate_image(image):
     
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    image = serializers.ImageField(required=False, allow_null=True)  # Optional image field
 
     class Meta:
         model = UsersAccount
         fields = '__all__'
-
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            image_url = obj.image.url
+            if request is not None:
+                return request.build_absolute_uri(image_url)
+            return f"{settings.MEDIA_URL}{image_url}"
+        return None
     def create(self, validated_data):
         password = validated_data.pop('password')  # Extracts the password from the validated data
         user = UsersAccount.objects.create_user(**validated_data, password=password)  # Calls the create_user method in the manager to create the user
         return user
     
+    def update(self, instance, validated_data):
+        # Update user attributes except password
+        for attr, value in validated_data.items():
+            if attr != 'password':
+                setattr(instance, attr, value)
+        
+        # Update password if provided
+        password = validated_data.get('password')
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
+        
+    def validate_image(self, value):
+        validate_image(value)  # Reuse the validate_image function for custom validation
+        return value
+    
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
+    image = serializers.ImageField(read_only=True)  # Read-only image field for login response
 
     def validate(self, attrs):
         email = attrs.get('email')
