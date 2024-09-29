@@ -107,7 +107,7 @@ class PostCommentSerializer(serializers.ModelSerializer):
 
     def get_children(self, obj):
         if obj.children.exists():
-            return PostCommentSerializer(obj.children.all(), many=True).data
+            return PostCommentSerializer(obj.children.all(), many=True, context=self.context).data
         return []
 
     def create(self, validated_data):
@@ -129,14 +129,22 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = '__all__'  # Include all fields in the response
     
-    title = serializers.CharField(required=True, max_length=50)
+    title = serializers.CharField(required=True, max_length=200)
     description = serializers.CharField(required=True)
     image = serializers.ImageField(required=True)
     post_ratings = serializers.IntegerField(default=0)
     rating_times = serializers.IntegerField(default=0)
     
+     # Validate description field
+    def validate_description(self, value):
+        if not value or value.strip() == "":
+            raise serializers.ValidationError("Description is required and cannot be empty.")
+        if len(value) < 100:
+            raise serializers.ValidationError("Description does not have enough content.")
+        return value
+    
     def validate_title(self, value):
-        if len(value) > 50:
+        if len(value) > 200:
             raise serializers.ValidationError("Title length cannot exceed 50 characters.")
         return value
 
@@ -145,6 +153,11 @@ class PostSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("This field is required.")
         validate_image(value)
         return value
+    
+class MemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UsersAccount
+        fields = ['first_name', 'last_name', 'bio', 'image']  # Fields you want to expose
 
 
     

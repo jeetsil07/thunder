@@ -4,6 +4,10 @@ from django.core.exceptions import ValidationError
 import uuid
 from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from PIL import Image as PilImage
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import sys
 
 # validation methods 
 def validate_image(image):
@@ -15,10 +19,17 @@ def validate_image(image):
     # Validate file type
     if not image.name.lower().endswith(('.png', '.jpg', '.jpeg')):
         raise ValidationError("Unsupported file extension. Only PNG, JPG, and JPEG are allowed.")
+    
 def validate_title(self, value):
     if len(value) > 50:
         raise ValidationError("Title length cannot exceed 50 characters.")
     return value
+
+def validate_description(value):
+    if not value or value.strip() == "":
+        raise ValidationError("Description cannot be empty.")
+    if len(value) < 100:
+        raise ValidationError("Description does not have enough content")
 
 # model classes
 class UsersAccountManager(BaseUserManager):
@@ -29,7 +40,9 @@ class UsersAccountManager(BaseUserManager):
             raise ValueError('The First Name field must be set')
         if not last_name:
             raise ValueError('The Last Name field must be set')
-
+        if not password:
+            raise ValueError('The Password field must be set')
+        
         email = self.normalize_email(email)
         
         # Extract the many-to-many data from extra_fields
@@ -59,6 +72,7 @@ class UsersAccount(AbstractBaseUser, PermissionsMixin):
     last_login = models.DateTimeField(null=True, blank=True, default=timezone.now)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
+    bio = models.TextField(blank=True)
     image = models.ImageField(
         upload_to='users/images/',
         validators=[validate_image],
@@ -85,10 +99,12 @@ class PostCategory(models.Model):
 class Post(models.Model):
     user = models.ForeignKey(UsersAccount, on_delete=models.SET_NULL, null=True, related_name='user_posts')
     title = models.CharField(
-        max_length=50,
+        max_length=200,
         validators=[validate_title]
     )
-    description = models.TextField()
+    description = models.TextField(
+        validators=[validate_description]
+    )
     image = models.ImageField(
         upload_to='posts/images/',
         validators=[validate_image]
@@ -101,6 +117,30 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def save(self, *args, **kwargs):
+        # Check if there's an image to compress
+        if self.image:
+            img = PilImage.open(self.image)
+
+            # Convert image to RGB if needed (for JPEG format)
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            # Compress the image and save to an in-memory buffer
+            img_io = BytesIO()
+            img.save(img_io, format='JPEG', quality=70)  # Set quality as needed (70-85 is a good balance)
+
+            # Rebuild the InMemoryUploadedFile for the compressed image
+            img_io.seek(0)
+            self.image = InMemoryUploadedFile(
+                img_io, 'ImageField', self.image.name, 'image/jpeg',
+                sys.getsizeof(img_io), None
+            )
+            print("this run")
+
+        # Call the parent class's save method to save the post
+        super().save(*args, **kwargs)
     
 class PostComments(models.Model):
     comment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

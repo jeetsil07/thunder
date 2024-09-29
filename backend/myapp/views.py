@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from .models import Post, PostCategory,PostComments
-from .serializers import PostSerializer, PostCategorySerializer, PostCommentSerializer, UserRegistrationSerializer, UserLoginSerializer
+from .models import Post, PostCategory,PostComments,UsersAccount
+from .serializers import PostSerializer, PostCategorySerializer, PostCommentSerializer, UserRegistrationSerializer, UserLoginSerializer, MemberSerializer
 from django.contrib.auth import authenticate
 from django.core.cache import cache
 from rest_framework.response import Response
@@ -11,40 +11,9 @@ from rest_framework.exceptions import AuthenticationFailed
 import jwt
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.http import FileResponse
 # Create your views here.
 import logging
-# def extract_user_id_from_jwt(request):
-#     """Extracts the user ID from the JWT token in the request's Authorization header."""
-#     auth_header = request.headers.get('Authorization')
-    
-#     if auth_header and auth_header.startswith('Bearer '):
-#         jwt_token = auth_header.split(' ')[1]  # Extract the token part
-        
-#         try:
-#             # Decode the JWT to extract the payload
-#             decoded_payload = jwt.decode(jwt_token, settings.SECRET_KEY, algorithms=["HS256"])
-            
-#             # Extract the user ID from the payload
-#             user_id = decoded_payload.get('user_id')
-#             return user_id
-        
-#         except jwt.ExpiredSignatureError:
-#             raise AuthenticationFailed("Token has expired")
-        
-#         except jwt.InvalidTokenError:
-#             raise AuthenticationFailed("Invalid token")
-    
-#     raise AuthenticationFailed("Authorization header missing or invalid")
-
-# class UserRegistrationView(generics.GenericAPIView):
-#     serializer_class = UserRegistrationSerializer
-
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         if serializer.is_valid():
-#             user = serializer.save()
-#             return Response({'status': 'User created'}, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class UserRegistrationView(generics.GenericAPIView):
     serializer_class = UserRegistrationSerializer
 
@@ -273,3 +242,15 @@ class PostModelViewSet(viewsets.ModelViewSet):
         serializer.save()
         cache.delete('post_list')
         cache.delete(f'post_category_{instance.post_category_id}')
+
+def download_resume(request):
+    pdf_path = os.path.join(settings.MEDIA_ROOT, 'resume', 'resume.pdf')
+    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf', as_attachment=True, filename='resume.pdf')
+
+class MemberView(generics.ListAPIView):
+    """
+    API view to list all users with only public information (image, first name, last name, and bio).
+    """
+    queryset = UsersAccount.objects.filter()  # Only active users
+    serializer_class = MemberSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Open for everyone (no authentication required)

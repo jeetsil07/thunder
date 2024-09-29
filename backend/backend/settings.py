@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^$6f*2cj=qdtja_@hc9&*#i+3j7q5%@urol)n)6()6t^8d42yb'
+SECRET_KEY = config('THUNDER_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('THUNDER_DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
 
 # Application definition
@@ -83,13 +85,21 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'portfolio',
+    #     'USER': 'root',
+    #     'PASSWORD': 'root',
+    #     'HOST': 'localhost',  # Or your MySQL server's IP address
+    #     'PORT': '3307',       # Default MySQL port
+    # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'portfolio',
-        'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',  # Or your MySQL server's IP address
-        'PORT': '3307',       # Default MySQL port
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
 
@@ -129,7 +139,7 @@ USE_TZ = True
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',  # Default Redis port is 6379 and 1 is the Redis DB number
+        'LOCATION': config('REDIS_URL'),  # Default Redis port is 6379 and 1 is the Redis DB number
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'SERIALIZER': 'django_redis.serializers.json.JSONSerializer'
@@ -147,7 +157,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 
 # Alternatively, you can specify the allowed origins explicitly:
 # CORS_ALLOWED_ORIGINS = [
@@ -169,7 +179,7 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,  # Enable refresh token rotation for added security
     'BLACKLIST_AFTER_ROTATION': True,  # Blacklist old refresh tokens after rotation
     'ALGORITHM': 'HS256',  # Default algorithm
-    'SIGNING_KEY': SECRET_KEY,  # You should set this to a secure key
+    'SIGNING_KEY': config('JWT_SIGINING_KEY'),  # You should set this to a secure key
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
