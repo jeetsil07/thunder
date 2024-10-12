@@ -5,7 +5,7 @@ on:
     branches:
       - develop
       - staging
-      - production
+      - main
 
 jobs:
   deploy:
@@ -34,15 +34,15 @@ jobs:
 
     - name: Deploy to VPS
       env:
-        DJANGO_ENV: ${{ github.ref_name == 'develop' && 'develop' || github.ref_name == 'staging' && 'staging' || github.ref_name == 'production' && 'production' }}
+        DJANGO_ENV: ${{ github.ref_name == 'develop' && 'develop' || github.ref_name == 'staging' && 'staging' || github.ref_name == 'main' && 'main' }}
       run: |
         SSH_HOST="${{ secrets.VPS_USER_IP }}"
         if [[ $DJANGO_ENV == "develop" ]]; then
           PROJECT_DIR="/home/jeet/projects/backend_develop"
         elif [[ $DJANGO_ENV == "staging" ]]; then
           PROJECT_DIR="/home/jeet/projects/backend_staging"
-        elif [[ $DJANGO_ENV == "production" ]]; then
-          PROJECT_DIR="/home/jeet/projects/backend_production"
+        elif [[ $DJANGO_ENV == "main" ]]; then
+          PROJECT_DIR="/home/jeet/projects/backend_main"
         fi
 
         ssh $SSH_HOST <<EOF
