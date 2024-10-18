@@ -35,24 +35,29 @@ jobs:
 
     - name: Deploy to VPS
       env:
-        DJANGO_ENV: ${{ github.ref_name == 'develop' && 'develop' || github.ref_name == 'staging' && 'staging' || github.ref_name == 'main' && 'main' }}
+        DJANGO_ENV: ${{ github.ref_name == 'develop' && 'qa' || github.ref_name == 'staging' && 'staging' || github.ref_name == 'main' && 'production' }}
       run: |
         SSH_HOST="${{ secrets.VPS_USER_IP }}"
-        if [[ $DJANGO_ENV == "develop" ]]; then
-          PROJECT_DIR="/home/jeet/projects/backend_develop"
+        SSH_PORT=2699
+
+         if [[ $DJANGO_ENV == "qa" ]]; then
+          PROJECT_DIR="/home/jeet/backendproject/backendqa/thunder/backend"
+          SERVICE_NAME="qa.thunder.jeethack.com.gunicorn"
         elif [[ $DJANGO_ENV == "staging" ]]; then
-          PROJECT_DIR="/home/jeet/projects/backend_staging"
-        elif [[ $DJANGO_ENV == "main" ]]; then
-          PROJECT_DIR="/home/jeet/projects/backend_main"
+          PROJECT_DIR="/home/jeet/backendproject/backendstag/thunder/backend"
+          SERVICE_NAME="staging.thunder.jeethack.com.gunicorn"
+        elif [[ $DJANGO_ENV == "production" ]]; then
+          PROJECT_DIR="/home/jeet/backendproject/backendprod/thunder/backend"
+          SERVICE_NAME="thunder.jeethack.com.gunicorn"
         fi
 
-        ssh $SSH_HOST <<EOF
+        ssh -p $SSH_PORT $SSH_HOST <<EOF
           cd $PROJECT_DIR
-          git pull origin $DJANGO_ENV
-          source $DJANGO_ENVthunder/bin/activate
+          git pull origin ${{ github.ref_name }}
+          source thunder$DJANGO_ENV/bin/activate
           pip install -r requirements.txt
           python manage.py migrate --settings=backend.settings.$DJANGO_ENV
           python manage.py collectstatic --noinput --settings=backend.settings.$DJANGO_ENV
-          sudo systemctl restart gunicorn_$DJANGO_ENV
+          sudo systemctl restart $SERVICE_NAME
           sudo systemctl restart nginx
         EOF
