@@ -37,7 +37,7 @@ jobs:
       env:
         DJANGO_ENV: ${{ github.ref_name == 'develop' && 'qa' || github.ref_name == 'staging' && 'staging' || github.ref_name == 'main' && 'production' }}
       run: |
-        SSH_HOST="${{ secrets.VPS_USER_IP }}"
+        SSH_HOST="jeet@62.72.29.140"
         SSH_PORT=2699
 
          if [[ $DJANGO_ENV == "qa" ]]; then
