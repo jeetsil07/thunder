@@ -66,4 +66,3 @@ jobs:
           sudo systemctl restart $SERVICE_NAME
           sudo systemctl restart nginx
         EOF
-# this is deploy file for automate
