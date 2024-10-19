@@ -29,11 +29,11 @@ DATABASES = {
 
 SECRET_KEY = config('THUNDER_SECRET_KEY')
 
-# STATIC_URL = 'static/'
-# STATIC_ROOT = '/var/www/backendproject/backendqa/static/'
+STATIC_URL = 'static/'
+STATIC_ROOT = '/var/www/backendproject/backendqa/static/'
 
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = config('QA_MEDIA_ROOT')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/var/www/backendproject/backendqa/media/'
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Adjusted for a shorter session
