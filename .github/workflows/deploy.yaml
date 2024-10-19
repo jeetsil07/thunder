@@ -27,7 +27,7 @@ jobs:
         cd backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        
+
     - name: Add VPS to known hosts
       run: |
         mkdir -p ~/.ssh
@@ -66,3 +66,4 @@ jobs:
           sudo systemctl restart $SERVICE_NAME
           sudo systemctl restart nginx
         EOF
+# this is deploy file for automate
