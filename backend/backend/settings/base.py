@@ -128,6 +128,7 @@ USE_TZ = True
 
 # APPEND_SLASH = False
 
+#this will need later
 # CACHES = {
 #     'default': {
 #         'BACKEND': 'django_redis.cache.RedisCache',
