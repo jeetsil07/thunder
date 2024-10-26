@@ -13,6 +13,7 @@ from django.core.wsgi import get_wsgi_application
 
 def get_settings_module():
     environment = os.getenv('DJANGO_ENV', 'local')  # Default to 'local'
+    print(environment,'environment')
     return f'backend.settings.{environment}'
 
 # Set the default settings module based on DJANGO_ENV
