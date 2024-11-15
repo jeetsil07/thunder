@@ -266,3 +266,15 @@ class EnvView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         return Response({"message": "QA ENVIRONMENT"})
+
+class Addstaging(generics.ListAPIView):
+    """
+    API view to list all users with only public information (image, first name, last name, and bio).
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Open for everyone (no authentication required)
+    def get_queryset(self):
+        # This method is required by ListAPIView but not used in this case
+        return []
+
+    def list(self, request, *args, **kwargs):
+        return Response({"message": "staging added"})
