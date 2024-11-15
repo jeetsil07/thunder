@@ -27,7 +27,7 @@ DATABASES = {
     }
 }
 
-SECRET_KEY = config('THUNDER_SECRET_KEY')
+# SECRET_KEY = config('THUNDER_SECRET_KEY') already written
 
 STATIC_URL = 'static/'
 STATIC_ROOT = '/var/www/backendproject/backendqa/static/'
