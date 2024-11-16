@@ -16,5 +16,5 @@ urlpatterns = [
     path('resume/', download_resume, name='download_resume'),
     path('members/', MemberView.as_view(), name='public-users'),
     path('env/', EnvView.as_view(), name='env-view'),
-    path('stag/', Addstaging.as_view(), name='staging'),
+    path('staging/', Addstaging.as_view(), name='staging'),
 ]
