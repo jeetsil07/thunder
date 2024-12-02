@@ -265,7 +265,7 @@ class EnvView(generics.ListAPIView):
         return []
 
     def list(self, request, *args, **kwargs):
-        return Response({"message": "QA ENVIRONMENT"})
+        return Response({"message": "QA ENVIRONMENT showing"})
 
 class Addstaging(generics.ListAPIView):
     """
