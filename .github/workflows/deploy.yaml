@@ -36,7 +36,6 @@ jobs:
     - name: Prepare SSH key
       uses: webfactory/ssh-agent@v0.9.0
       with:
-        echo "The value of MY_SECRET is: ${{ secrets.THUNDER_DEPLOY_KEY }}"
         ssh-private-key: ${{ secrets.THUNDER_DEPLOY_KEY }}
 
     - name: Deploy to VPS
