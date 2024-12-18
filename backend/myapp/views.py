@@ -180,7 +180,7 @@ class PostCommentsModelViewSet(viewsets.ModelViewSet):
 class PostCategoryModelViewSet(viewsets.ModelViewSet):
     queryset = PostCategory.objects.all()
     serializer_class = PostCategorySerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
     # Pass the current user to the serializer's `save` method
@@ -188,7 +188,7 @@ class PostCategoryModelViewSet(viewsets.ModelViewSet):
     
 class PostModelViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         queryset = Post.objects.all()
