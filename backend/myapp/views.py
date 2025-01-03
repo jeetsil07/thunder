@@ -244,8 +244,8 @@ class PostModelViewSet(viewsets.ModelViewSet):
         cache.delete(f'post_category_{instance.post_category_id}')
 
 def download_resume(request):
-    pdf_path = os.path.join(settings.MEDIA_ROOT, 'resume', 'resume.pdf')
-    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf', as_attachment=True, filename='resume.pdf')
+    pdf_path = os.path.join(settings.MEDIA_ROOT, 'resume', 'jeet_new_resume.pdf')
+    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf', as_attachment=True, filename='jeet_new_resume.pdf')
 
 class MemberView(generics.ListAPIView):
     """
