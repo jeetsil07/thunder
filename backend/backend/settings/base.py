@@ -15,7 +15,7 @@ import os
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET_KEY = config('THUNDER_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = config('THUNDER_DEBUG', default=False, cast=bool)
+DEBUG = False
 
 # ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
@@ -128,53 +128,54 @@ USE_TZ = True
 
 # APPEND_SLASH = False
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': config('REDIS_URL'),  # Default Redis port is 6379 and 1 is the Redis DB number
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'SERIALIZER': 'django_redis.serializers.json.JSONSerializer'
-        }
-    }
-}
+#this will need later
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': config('REDIS_URL'),  # Default Redis port is 6379 and 1 is the Redis DB number
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#             'SERIALIZER': 'django_redis.serializers.json.JSONSerializer'
+#         }
+#     }
+# }
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-STATIC_URL = 'static/'
+# 
+# STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+# CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AUTH_USER_MODEL = 'myapp.UsersAccount'
 
 from datetime import timedelta
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Adjusted for a shorter session
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # A longer refresh token lifetime
-    'ROTATE_REFRESH_TOKENS': True,  # Enable refresh token rotation for added security
-    'BLACKLIST_AFTER_ROTATION': True,  # Blacklist old refresh tokens after rotation
-    'ALGORITHM': 'HS256',  # Default algorithm
-    'SIGNING_KEY': config('JWT_SIGINING_KEY'),  # You should set this to a secure key
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
-    'AUTH_HEADER_TYPES': ('Bearer',),  # The token type is Bearer
-    'USER_ID_FIELD': 'user_id',
-    'USER_ID_CLAIM': 'user_id',
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-    'JTI_CLAIM': 'jti',
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=30),
-}
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Adjusted for a shorter session
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # A longer refresh token lifetime
+#     'ROTATE_REFRESH_TOKENS': True,  # Enable refresh token rotation for added security
+#     'BLACKLIST_AFTER_ROTATION': True,  # Blacklist old refresh tokens after rotation
+#     'ALGORITHM': 'HS256',  # Default algorithm
+#     'SIGNING_KEY': config('JWT_SIGINING_KEY'),  # You should set this to a secure key
+#     'VERIFYING_KEY': None,
+#     'AUDIENCE': None,
+#     'ISSUER': None,
+#     'AUTH_HEADER_TYPES': ('Bearer',),  # The token type is Bearer
+#     'USER_ID_FIELD': 'user_id',
+#     'USER_ID_CLAIM': 'user_id',
+#     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+#     'TOKEN_TYPE_CLAIM': 'token_type',
+#     'JTI_CLAIM': 'jti',
+#     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
+#     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=30),
+# }
 

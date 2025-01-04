@@ -244,8 +244,8 @@ class PostModelViewSet(viewsets.ModelViewSet):
         cache.delete(f'post_category_{instance.post_category_id}')
 
 def download_resume(request):
-    pdf_path = os.path.join(settings.MEDIA_ROOT, 'resume', 'resume.pdf')
-    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf', as_attachment=True, filename='resume.pdf')
+    pdf_path = os.path.join(settings.MEDIA_ROOT, 'resume', 'jeet_new_resume.pdf')
+    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf', as_attachment=True, filename='jeet_new_resume.pdf')
 
 class MemberView(generics.ListAPIView):
     """
@@ -254,3 +254,27 @@ class MemberView(generics.ListAPIView):
     queryset = UsersAccount.objects.filter()  # Only active users
     serializer_class = MemberSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]  # Open for everyone (no authentication required)
+
+class EnvView(generics.ListAPIView):
+    """
+    API view to list all users with only public information (image, first name, last name, and bio).
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Open for everyone (no authentication required)
+    def get_queryset(self):
+        # This method is required by ListAPIView but not used in this case
+        return []
+
+    def list(self, request, *args, **kwargs):
+        return Response({"message": "QA ENVIRONMENT showing"})
+
+class Addstaging(generics.ListAPIView):
+    """
+    API view to list all users with only public information (image, first name, last name, and bio).
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Open for everyone (no authentication required)
+    def get_queryset(self):
+        # This method is required by ListAPIView but not used in this case
+        return []
+
+    def list(self, request, *args, **kwargs):
+        return Response({"message": "staging added"})

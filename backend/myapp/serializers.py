@@ -157,7 +157,4 @@ class PostSerializer(serializers.ModelSerializer):
 class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = UsersAccount
-        fields = ['first_name', 'last_name', 'bio', 'image']  # Fields you want to expose
-
-
-    
+        fields = ['first_name', 'last_name', 'bio', 'image']  # Fields you want to expose   
