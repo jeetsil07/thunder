@@ -18,3 +18,5 @@ urlpatterns = [
     path('env/', EnvView.as_view(), name='env-view'),
     path('staging/', Addstaging.as_view(), name='staging'),
 ]
+
+# add produvtion
