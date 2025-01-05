@@ -277,4 +277,4 @@ class Addproduction(generics.ListAPIView):
         return []
 
     def list(self, request, *args, **kwargs):
-        return Response({"message": "production added"})
+        return Response({"message": "production added..."})
