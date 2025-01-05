@@ -267,7 +267,7 @@ class EnvView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         return Response({"message": "QA ENVIRONMENT showing"})
 
-class Addstaging(generics.ListAPIView):
+class Addproduction(generics.ListAPIView):
     """
     API view to list all users with only public information (image, first name, last name, and bio).
     """
@@ -277,4 +277,4 @@ class Addstaging(generics.ListAPIView):
         return []
 
     def list(self, request, *args, **kwargs):
-        return Response({"message": "staging added"})
+        return Response({"message": "production added"})
