@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import PostModelViewSet, PostCategoryModelViewSet, PostCommentsModelViewSet, download_resume
-from .views import UserRegistrationView, UserLoginView, MemberView, EnvView, Addstaging
+from .views import UserRegistrationView, UserLoginView, MemberView, EnvView, Addproduction
 # Create a router and register our viewset with it.
 router = DefaultRouter()
 router.register(r'posts', PostModelViewSet,basename='post')
@@ -16,7 +16,7 @@ urlpatterns = [
     path('resume/', download_resume, name='download_resume'),
     path('members/', MemberView.as_view(), name='public-users'),
     path('env/', EnvView.as_view(), name='env-view'),
-    path('staging/', Addstaging.as_view(), name='staging'),
+    path('production/', Addproduction.as_view(), name='production'),
 ]
 
 # add produvtion
