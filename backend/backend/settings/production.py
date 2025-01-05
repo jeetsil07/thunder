@@ -3,8 +3,9 @@ from decouple import Config, RepositoryEnv
 
 def get_config():
     # This function should return the config loaded in manage.py
-    environment = os.getenv('DJANGO_ENV', 'local')  # Default to 'local'
-    env_file = f'.env.{environment}'
+    # environment = os.getenv('DJANGO_ENV', 'local')  # Default to 'local'
+    # env_file = f'.env.{environment}'
+    env_file = f'.env.production'
     return Config(RepositoryEnv(env_file))
 
 config = get_config()  # Load the configuration
