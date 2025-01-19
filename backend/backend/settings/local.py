@@ -37,7 +37,7 @@ CACHES = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=2),  # Adjusted for a shorter session
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Adjusted for a shorter session
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # A longer refresh token lifetime
     'ROTATE_REFRESH_TOKENS': True,  # Enable refresh token rotation for added security
     'BLACKLIST_AFTER_ROTATION': True,  # Blacklist old refresh tokens after rotation
