@@ -244,8 +244,8 @@ class PostModelViewSet(viewsets.ModelViewSet):
         cache.delete(f'post_category_{instance.post_category_id}')
 
 def download_resume(request):
-    pdf_path = os.path.join(settings.MEDIA_ROOT, 'resume', 'jeet_new_resume.pdf')
-    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf', as_attachment=True, filename='jeet_new_resume.pdf')
+    pdf_path = os.path.join(settings.MEDIA_ROOT, 'resume', 'Jeet_Sil_resume.pdf')
+    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf', as_attachment=True, filename='Jeet_Sil_resume.pdf')
 
 class MemberView(generics.ListAPIView):
     """
@@ -267,7 +267,7 @@ class EnvView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         return Response({"message": "QA ENVIRONMENT showing"})
 
-class Addstaging(generics.ListAPIView):
+class Addproduction(generics.ListAPIView):
     """
     API view to list all users with only public information (image, first name, last name, and bio).
     """
@@ -277,4 +277,4 @@ class Addstaging(generics.ListAPIView):
         return []
 
     def list(self, request, *args, **kwargs):
-        return Response({"message": "staging added"})
+        return Response({"message": "production added"})
